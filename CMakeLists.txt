@@ -44,6 +44,7 @@ set(SRC_FILES
   Core/Startup/startup_stm32f429zitx.s
   ${STM32F4_HAL_DRIVER}
   Core/Src/freertos_hook.c
+  Core/Src/gcc_printf_port.c
 )
 
 # Build the executable based on the source files
