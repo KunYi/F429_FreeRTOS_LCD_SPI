@@ -8,7 +8,7 @@ project(F429_FreeRTOS_LCD)
 set(EXECUTABLE ${PROJECT_NAME}.elf)
 set(LINKER_FILE ${CMAKE_SOURCE_DIR}/STM32F429ZITX_FLASH.ld)
 
-set(DEFINE_COMPILE_FLAGS
+add_compile_options(
   -mcpu=cortex-m4
   -mthumb
   -mfpu=fpv4-sp-d16
@@ -24,13 +24,55 @@ set(DEFINE_COMPILE_FLAGS
   -g3
 )
 
+# set(DEFINE_COMPILE_FLAGS
+#   -mcpu=cortex-m4
+#   -mthumb
+#   -mfpu=fpv4-sp-d16
+#   -mfloat-abi=hard
+
+#   -fdata-sections
+#   -ffunction-sections
+
+#   -DUSE_HAL_DRIVER
+#   -DSTM32F429xx
+#   -Wall
+#   -O0
+#   -g3
+# )
+
 enable_language(C ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 
 include(cmake/freertos.cmake)
-# include(Thirdparty/lvgl/CMakeLists.txt)
+
+set(FREERTOS_DIR
+  ${FREERTOS_PATH}/include
+  ${FREERTOS_PATH}/portable/GCC/ARM_CM4F
+  CACHE PATH "Path to FreeRTOS include directory"
+  FORCE
+)
+
+set(STM32F4xx_DIR
+  ${CMAKE_SOURCE_DIR}/Core/Inc
+  ${CMAKE_SOURCE_DIR}/Drivers/CMSIS/Include
+  ${CMAKE_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include
+  ${CMAKE_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Inc
+  ${CMAKE_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
+  CACHE PATH "Path to CMSIS of STM32F4xx"
+  FORCE
+)
+
+# for lvgl
+set(LV_CONF_BUILD_DISABLE_THORVG_INTERNAL ON)
+set(LV_CONF_BUILD_DISABLE_EXAMPLES ON)
+set(LV_CONF_BUILD_DISABLE_DEMOS ON)
+set(LV_CONF_PATH
+  ${CMAKE_SOURCE_DIR}/lv_conf.h
+  CACHE STRING "" FORCE)
+
+add_subdirectory(Thirdparty/lvgl)
 
 set(STM32F4HALDIR "Drivers/STM32F4xx_HAL_Driver/Src")
 FILE(GLOB STM32F4_HAL_DRIVER "${STM32F4HALDIR}/*.c")
@@ -54,16 +96,13 @@ add_executable(${EXECUTABLE} ${SRC_FILES})
 
 target_link_libraries(${EXECUTABLE}
   freertos
+  lvgl::lvgl
 )
 
 # List of includ directories
 target_include_directories(${EXECUTABLE} PRIVATE
   ${CMAKE_SOURCE_DIR}
-  Core/Inc
-  Drivers/CMSIS/Include
-  Drivers/CMSIS/Device/ST/STM32F4xx/Include
-  Drivers/STM32F4xx_HAL_Driver/Inc
-  Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
+  ${STM32F4xx_DIR}
 )
 
 # Compiler options

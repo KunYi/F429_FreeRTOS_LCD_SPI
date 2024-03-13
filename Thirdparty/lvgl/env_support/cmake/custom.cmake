@@ -36,7 +36,11 @@ if(LV_CONF_PATH)
 endif()
 
 # Include root and optional parent path of LV_CONF_PATH
-target_include_directories(lvgl SYSTEM PUBLIC ${LVGL_ROOT_DIR} ${LV_CONF_DIR})
+target_include_directories(lvgl SYSTEM PUBLIC
+  ${LVGL_ROOT_DIR} ${LV_CONF_DIR}
+  ${FREERTOS_DIR}
+  ${STM32F4xx_DIR}
+)
 
 
 if(NOT LV_CONF_BUILD_DISABLE_THORVG_INTERNAL)
