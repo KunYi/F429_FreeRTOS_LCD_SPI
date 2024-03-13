@@ -30,6 +30,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 
 include(cmake/freertos.cmake)
+# include(Thirdparty/lvgl/CMakeLists.txt)
 
 set(STM32F4HALDIR "Drivers/STM32F4xx_HAL_Driver/Src")
 FILE(GLOB STM32F4_HAL_DRIVER "${STM32F4HALDIR}/*.c")
