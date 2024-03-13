@@ -75,7 +75,7 @@
 
 /* configTICK_RATE_HZ sets frequency of the tick interrupt in Hz, normally
  * calculated from the configCPU_CLOCK_HZ value. */
-#define configTICK_RATE_HZ                         100
+#define configTICK_RATE_HZ                         ( ( TickType_t ) 1000 )
 
 /* Set configUSE_PREEMPTION to 1 to use pre-emptive scheduling.  Set
  * configUSE_PREEMPTION to 0 to use co-operative scheduling.
@@ -106,7 +106,7 @@
 /* configMAX_PRIORITIES Sets the number of available task priorities.  Tasks can
  * be assigned priorities of 0 to (configMAX_PRIORITIES - 1).  Zero is the lowest
  * priority. */
-#define configMAX_PRIORITIES                       5
+#define configMAX_PRIORITIES                       32
 
 /* configMINIMAL_STACK_SIZE defines the size of the stack used by the Idle task
  * (in words, not in bytes!).  The kernel does not use this constant for any other
@@ -258,7 +258,7 @@
  * or heap_4.c are included in the build.  This value is defaulted to 4096 bytes but
  * it must be tailored to each application.  Note the heap will appear in the .bss
  * section.  See https://www.freertos.org/a00111.html. */
-#define configTOTAL_HEAP_SIZE                        4096
+#define configTOTAL_HEAP_SIZE                        ((size_t) 15*1024)
 
 /* Set configAPPLICATION_ALLOCATED_HEAP to 1 to have the application allocate
  * the array used as the FreeRTOS heap.  Set to 0 to have the linker allocate the
@@ -281,13 +281,30 @@
 /******************************************************************************/
 /* Interrupt nesting behaviour configuration. *********************************/
 /******************************************************************************/
+/* Cortex-M specific definitions. */
+#ifdef __NVIC_PRIO_BITS
+ /* __BVIC_PRIO_BITS will be specified when CMSIS is being used. */
+ #define configPRIO_BITS         __NVIC_PRIO_BITS
+#else
+ #define configPRIO_BITS         4
+#endif
+
+/* The lowest interrupt priority that can be used in a call to a "set priority"
+function. */
+#define configLIBRARY_LOWEST_INTERRUPT_PRIORITY   15
+
+/* The highest interrupt priority that can be used by any interrupt service
+routine that makes calls to interrupt safe FreeRTOS API functions.  DO NOT CALL
+INTERRUPT SAFE FREERTOS API FUNCTIONS FROM ANY INTERRUPT THAT HAS A HIGHER
+PRIORITY THAN THIS! (higher priorities are lower numeric values. */
+#define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY 5
 
 /* configKERNEL_INTERRUPT_PRIORITY sets the priority of the tick and context
  * switch performing interrupts.  The default value is set to the highest interrupt
  * priority (0).  Not supported by all FreeRTOS ports.  See
  * https://www.freertos.org/RTOS-Cortex-M3-M4.html for information specific to ARM
  * Cortex-M devices. */
-#define configKERNEL_INTERRUPT_PRIORITY          0
+#define configKERNEL_INTERRUPT_PRIORITY          ( configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
 
 /* configMAX_SYSCALL_INTERRUPT_PRIORITY sets the interrupt priority above which
  * FreeRTOS API calls must not be made.  Interrupts above this priority are never
@@ -295,11 +312,11 @@
  * highest interrupt priority (0).  Not supported by all FreeRTOS ports.
  * See https://www.freertos.org/RTOS-Cortex-M3-M4.html for information specific to
  * ARM Cortex-M devices. */
-#define configMAX_SYSCALL_INTERRUPT_PRIORITY     0
+#define configMAX_SYSCALL_INTERRUPT_PRIORITY     ( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
 
 /* Another name for configMAX_SYSCALL_INTERRUPT_PRIORITY - the name used depends
  * on the FreeRTOS port. */
-#define configMAX_API_CALL_INTERRUPT_PRIORITY    0
+#define configMAX_API_CALL_INTERRUPT_PRIORITY    ( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
 
 /******************************************************************************/
 /* Hook and callback function related definitions. ****************************/
@@ -333,7 +350,7 @@
  * the stack overflow callback when configCHECK_FOR_STACK_OVERFLOW is set to 1.
  * See https://www.freertos.org/Stacks-and-stack-overflow-checking.html  Defaults
  * to 0 if left undefined. */
-#define configCHECK_FOR_STACK_OVERFLOW        2
+#define configCHECK_FOR_STACK_OVERFLOW        0
 
 /******************************************************************************/
 /* Run time and task stats gathering related definitions. *********************/
@@ -565,4 +582,10 @@
 #define INCLUDE_xTaskGetHandle                 0
 #define INCLUDE_xTaskResumeFromISR             1
 
+
+/* Definitions that map the FreeRTOS port interrupt handlers to their CMSIS
+standard names. */
+#define vPortSVCHandler    SVC_Handler
+#define xPortPendSVHandler PendSV_Handler
+// #define xPortSysTickHandler SysTick_Handler
 #endif /* FREERTOS_CONFIG_H */

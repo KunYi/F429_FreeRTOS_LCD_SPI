@@ -15,6 +15,10 @@
   *
   ******************************************************************************
   */
+#include <stdio.h>
+#include "FreeRTOS.h"
+#include "task.h"
+
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -68,12 +72,20 @@ static void MX_SPI1_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_FS_PCD_Init(void);
 /* USER CODE BEGIN PFP */
-
+static void prvBlinky( void * pvParameters );
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+static void prvBlinky( void * pvParameters ) {
 
+    const TickType_t xDelay = 500 / portTICK_PERIOD_MS;
+    while(1) {
+      HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
+      HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+      vTaskDelay(xDelay);
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -110,7 +122,16 @@ int main(void)
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
   /* USER CODE BEGIN 2 */
+  printf("FreeRTOS\r\n");
+  HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
+  xTaskCreate( prvBlinky, "Blinky", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY+2, NULL );
+  extern void main_blinky(void);
+  main_blinky();
 
+
+  vTaskStartScheduler();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -120,6 +141,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    // HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
+    // HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    HAL_GPIO_TogglePin(LD3_GPIO_Port, LD3_Pin);
+    HAL_Delay(500);
   }
   /* USER CODE END 3 */
 }
