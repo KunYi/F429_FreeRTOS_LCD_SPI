@@ -33,20 +33,28 @@ void lcd_color_transfer_ready_cb(SPI_HandleTypeDef *hspi)
   HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_SET);
   lcd_bus_busy = 0;
   lv_display_flush_ready(lcd_disp);
-
 }
 
 /* Initialize LCD bus, reset LCD */
 static int32_t lcd_init(void)
 {
+//   GPIO_InitTypeDef GPIO_InitStruct = {0};
+//   GPIO_InitStruct.Pin = LCD_CS_Pin | LCD_DCX_Pin;
+//   GPIO_InitStruct.Pull = GPIO_NOPULL;
+//   GPIO_InitStruct.Mode =  GPIO_MODE_OUTPUT_PP;
+//   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+//   HAL_GPIO_Init(LCD_CS_GPIO_Port, &GPIO_InitStruct);
+//   HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_RESET);
+//   HAL_GPIO_WritePin(LCD_DCX_GPIO_Port, LCD_DCX_Pin, GPIO_PIN_SET);
+//   vTaskDelay(10);
   /* Register SPI Tx Complete Callback */
   HAL_SPI_RegisterCallback(&hspi1, HAL_SPI_TX_COMPLETE_CB_ID, lcd_color_transfer_ready_cb);
 
   /* reset LCD */
   HAL_GPIO_WritePin(LCD_RESET_GPIO_Port, LCD_RESET_Pin, GPIO_PIN_RESET);
-  vTaskDelay(50);
+  vTaskDelay(100);
   HAL_GPIO_WritePin(LCD_RESET_GPIO_Port, LCD_RESET_Pin, GPIO_PIN_SET);
-  vTaskDelay(50);
+  vTaskDelay(100);
   HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(LCD_DCX_GPIO_Port, LCD_DCX_Pin, GPIO_PIN_SET);
   return HAL_OK;
@@ -122,7 +130,7 @@ void LVGL_Task(void *argument)
   lv_color_t * buf1 = NULL;
   lv_color_t * buf2 = NULL;
   uint32_t buf_size = LCD_H_RES * LCD_V_RES / 10 * lv_color_format_get_size(lv_display_get_color_format(lcd_disp));
-  printf("buffer size: %lu, need 2time\r\n", buf_size);
+  // printf("buffer size: %lu, need 2time\r\n", buf_size);
   buf1 = lv_malloc(buf_size);
   if (buf1 == NULL) {
     LV_LOG_ERROR("display draw buffer malloc failed");
