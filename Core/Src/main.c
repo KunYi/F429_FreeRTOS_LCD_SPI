@@ -73,6 +73,7 @@ static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_FS_PCD_Init(void);
 /* USER CODE BEGIN PFP */
 static void prvBlinky( void * pvParameters );
+extern void LVGL_Task( void * argument );
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -122,14 +123,14 @@ int main(void)
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
   /* USER CODE BEGIN 2 */
-  printf("FreeRTOS\r\n");
+  printf("FreeRTOS v11.0.1 + LVGL v9.0\r\n");
   HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LD3_GPIO_Port, LD3_Pin, GPIO_PIN_SET);
   xTaskCreate( prvBlinky, "Blinky", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY+2, NULL );
-  extern void main_blinky(void);
-  main_blinky();
-
+  // extern void main_blinky(void);
+  // main_blinky();
+  xTaskCreate( LVGL_Task, "Lvgl", 512, NULL, (configMAX_PRIORITIES * 2/3), NULL );
 
   vTaskStartScheduler();
   /* USER CODE END 2 */
