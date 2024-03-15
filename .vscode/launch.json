@@ -1,0 +1,35 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+	{
+	    "name": "Debug-Openocd-STM32F4x",
+	    "cwd": "${workspaceRoot}",
+	    "executable": "build/Debug/F429_FreeRTOS_LCD.elf",
+	    "request": "launch",
+	    "type": "cortex-debug",
+	    // openocd config
+	    "servertype": "openocd",
+	    "searchDir": [
+		"/usr/local/share/openocd/tcl"
+	    ],
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32f4x.cfg"
+            ],
+	    // end of openocd config
+	    "gdbPath": "/usr/bin/gdb-multiarch",
+	    "runToEntryPoint": "main",
+	    "device": "STM32F429ZITX",
+	    "svdFile": "STM32F429x.svd",
+	    "liveWatch": {
+		"enabled": false,
+		"samplesPerSecond": 4
+	    },
+	    "showDevDebugOutput": "none",
+	    "rtos": "FreeRTOS"
+	}
+    ]
+}

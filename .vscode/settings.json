@@ -1,0 +1,5 @@
+{
+	"cortex-debug.liveWatchRefreshRate": 100,
+	// "cortex-debug.armToolchainPath.linux": "/usr/bin",
+	// "cortex-debug.gdbPath.linux": "/usr/bin"
+}

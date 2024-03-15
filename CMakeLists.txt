@@ -21,7 +21,7 @@ add_compile_options(
   -DSTM32F429xx
   -Wall
   -O0
-  -g3
+  -ggdb
 )
 
 # set(DEFINE_COMPILE_FLAGS
