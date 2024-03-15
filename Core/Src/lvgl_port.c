@@ -10,8 +10,10 @@
 #include "task.h"
 #include "main.h"
 
-#define LCD_H_RES       (240)
-#define LCD_V_RES       (320)
+#include <stdio.h>
+
+#define LCD_H_RES       (240) // width
+#define LCD_V_RES       (320) // height
 #define BUS_SPI1_POLL_TIMEOUT 0x1000U
 
 
@@ -23,9 +25,76 @@ volatile int lcd_bus_busy = 0;
 extern SPI_HandleTypeDef 	hspi1;
 extern DMA_HandleTypeDef 	hdma_spi1_tx;
 #define LCD_CS_GPIO_Port 	SPI_CS_GPIO_Port
-#define LCD_CS_Pin  	 	SPI_CS_Pin
+#define LCD_CS_Pin  	  	SPI_CS_Pin
 #define LCD_DCX_GPIO_Port 	LCD_DC_SEL_GPIO_Port
 #define LCD_DCX_Pin	 	LCD_DC_SEL_Pin
+
+#define SPILCD_CS_RESET do { HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_RESET); } while(0)
+#define SPILCD_CS_SET do { HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_SET); } while(0)
+#define SPILCD_RS_RESET do { HAL_GPIO_WritePin(LCD_DCX_GPIO_Port, LCD_DCX_Pin, GPIO_PIN_RESET); } while(0)
+#define SPILCD_RS_SET do { HAL_GPIO_WritePin(LCD_DCX_GPIO_Port, LCD_DCX_Pin, GPIO_PIN_SET); } while(0)
+
+static void LCD_WR_REG(uint16_t regval)
+{
+  uint8_t data = (regval & 0xFF);
+  SPILCD_CS_RESET;  //LCD_CS=0
+  SPILCD_RS_RESET;
+  HAL_SPI_Transmit(&hspi1, &data, 1, BUS_SPI1_POLL_TIMEOUT);
+  SPILCD_CS_SET;  //LCD_CS=1
+}
+
+static void LCD_WR_DATA(uint16_t val)
+{
+  uint8_t data[2];
+  data[0] = val >> 8;
+  data[1] = (val & 0xff);
+  SPILCD_CS_RESET;  //LCD_CS=0
+  SPILCD_RS_SET;
+  HAL_SPI_Transmit(&hspi1, data, 2, BUS_SPI1_POLL_TIMEOUT);
+  SPILCD_CS_SET;  //LCD_CS=1
+}
+
+static void LCD_WR_DATA8(uint8_t da)
+{
+  SPILCD_CS_RESET;  //LCD_CS=0
+  SPILCD_RS_SET;
+  HAL_SPI_Transmit(&hspi1, &da, 1, BUS_SPI1_POLL_TIMEOUT);
+  SPILCD_CS_SET;  //LCD_CS=1
+}
+
+static void LCD_WR_REG_DATA(uint8_t LCD_Reg, uint16_t LCD_RegValue)
+{
+	LCD_WR_REG(LCD_Reg);
+	LCD_WR_DATA(LCD_RegValue);
+}
+
+static void LCD_SetCursor(uint16_t Xpos, uint16_t Ypos)
+{
+  LCD_WR_REG(0x2A);
+  LCD_WR_DATA8(Xpos>>8);
+  LCD_WR_DATA8(Xpos&0XFF);
+  LCD_WR_REG(0x2B);
+  LCD_WR_DATA8(Ypos>>8);
+  LCD_WR_DATA8(Ypos&0XFF);
+}
+
+static void LCD_WriteRAM_Prepare(void)
+{
+	LCD_WR_REG(0x2C);
+}
+
+void LCD_Clear(uint16_t color)
+{
+	uint32_t index=0;
+	uint32_t totalpoint=LCD_H_RES * LCD_V_RES;
+
+	LCD_SetCursor(0x00,0x0000);
+	LCD_WriteRAM_Prepare();
+	for(index=0; index < totalpoint; index++)
+	{
+		LCD_WR_DATA(color);
+	}
+}
 
 void lcd_color_transfer_ready_cb(SPI_HandleTypeDef *hspi)
 {
@@ -52,12 +121,111 @@ static int32_t lcd_init(void)
 
   /* reset LCD */
   HAL_GPIO_WritePin(LCD_RESET_GPIO_Port, LCD_RESET_Pin, GPIO_PIN_RESET);
-  vTaskDelay(100);
+  HAL_Delay(100);
   HAL_GPIO_WritePin(LCD_RESET_GPIO_Port, LCD_RESET_Pin, GPIO_PIN_SET);
-  vTaskDelay(100);
+  HAL_Delay(100);
   HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(LCD_DCX_GPIO_Port, LCD_DCX_Pin, GPIO_PIN_SET);
-  return HAL_OK;
+
+
+	LCD_WR_REG(0xCF);
+	LCD_WR_DATA(0x00);
+	LCD_WR_DATA(0xD9); //0xC1
+	LCD_WR_DATA(0X30);
+	LCD_WR_REG(0xED);
+	LCD_WR_DATA(0x64);
+	LCD_WR_DATA(0x03);
+	LCD_WR_DATA(0X12);
+	LCD_WR_DATA(0X81);
+	LCD_WR_REG(0xE8);
+	LCD_WR_DATA(0x85);
+	LCD_WR_DATA(0x10);
+	LCD_WR_DATA(0x7A);
+	LCD_WR_REG(0xCB);
+	LCD_WR_DATA(0x39);
+	LCD_WR_DATA(0x2C);
+	LCD_WR_DATA(0x00);
+	LCD_WR_DATA(0x34);
+	LCD_WR_DATA(0x02);
+	LCD_WR_REG(0xF7);
+	LCD_WR_DATA(0x20);
+	LCD_WR_REG(0xEA);
+	LCD_WR_DATA(0x00);
+	LCD_WR_DATA(0x00);
+	LCD_WR_REG(0xC0);    //Power control
+	LCD_WR_DATA(0x1B);   //VRH[5:0]
+	LCD_WR_REG(0xC1);    //Power control
+	LCD_WR_DATA(0x12);   //SAP[2:0];BT[3:0] 0x01
+	LCD_WR_REG(0xC5);    //VCM control
+	LCD_WR_DATA(0x08); 	 //30
+	LCD_WR_DATA(0x26); 	 //30
+	LCD_WR_REG(0xC7);    //VCM control2
+	LCD_WR_DATA(0XB7);
+	LCD_WR_REG(0x36);    // Memory Access Control
+	LCD_WR_DATA(0x08);
+	LCD_WR_REG(0x3A);
+	LCD_WR_DATA(0x55);
+	LCD_WR_REG(0xB1);
+	LCD_WR_DATA(0x00);
+	LCD_WR_DATA(0x1A);
+	LCD_WR_REG(0xB6);    // Display Function Control
+	LCD_WR_DATA(0x0A);
+	LCD_WR_DATA(0xA2);
+	LCD_WR_REG(0xF2);    // 3Gamma Function Disable
+	LCD_WR_DATA(0x00);
+	LCD_WR_REG(0x26);    //Gamma curve selected
+	LCD_WR_DATA(0x01);
+	LCD_WR_REG(0xE0);    //Set Gamma
+	LCD_WR_DATA(0x0F);
+	LCD_WR_DATA(0x1D);
+	LCD_WR_DATA(0x1A);
+	LCD_WR_DATA(0x0A);
+	LCD_WR_DATA(0x0D);
+	LCD_WR_DATA(0x07);
+	LCD_WR_DATA(0x49);
+	LCD_WR_DATA(0X66);
+	LCD_WR_DATA(0x3B);
+	LCD_WR_DATA(0x07);
+	LCD_WR_DATA(0x11);
+	LCD_WR_DATA(0x01);
+	LCD_WR_DATA(0x09);
+	LCD_WR_DATA(0x05);
+	LCD_WR_DATA(0x04);
+	LCD_WR_REG(0XE1);    //Set Gamma
+	LCD_WR_DATA(0x00);
+	LCD_WR_DATA(0x18);
+	LCD_WR_DATA(0x1D);
+	LCD_WR_DATA(0x02);
+	LCD_WR_DATA(0x0F);
+	LCD_WR_DATA(0x04);
+	LCD_WR_DATA(0x36);
+	LCD_WR_DATA(0x13);
+	LCD_WR_DATA(0x4C);
+	LCD_WR_DATA(0x07);
+	LCD_WR_DATA(0x13);
+	LCD_WR_DATA(0x0F);
+	LCD_WR_DATA(0x2E);
+	LCD_WR_DATA(0x2F);
+	LCD_WR_DATA(0x05);
+	LCD_WR_REG(0x2B);
+	LCD_WR_DATA(0x00);
+	LCD_WR_DATA(0x00);
+	LCD_WR_DATA(0x01);
+	LCD_WR_DATA(0x3f);
+	LCD_WR_REG(0x2A);
+	LCD_WR_DATA(0x00);
+	LCD_WR_DATA(0x00);
+	LCD_WR_DATA(0x00);
+	LCD_WR_DATA(0xef);
+	LCD_WR_REG(0x11); //Exit Sleep
+	HAL_Delay(120);
+	LCD_WR_REG(0x29); //display on
+
+  // LCD_direction(0);//����LCD��ʾ����
+	LCD_Clear(0x00);//��ȫ����ɫ
+		    LCD_Clear(0x0);
+        vTaskDelay(2000);
+        return HAL_OK;
 }
 
 /* Platform-specific implementation of the LCD send command function. In general this should use polling transfer. */
@@ -147,12 +315,12 @@ void LVGL_Task(void *argument)
   lv_display_set_buffers(lcd_disp, buf1, buf2, buf_size, LV_DISPLAY_RENDER_MODE_PARTIAL);
 
   ui_init(lcd_disp);
-
   for(;;) {
     /* The task running lv_timer_handler should have lower priority than that running `lv_tick_inc` */
     lv_timer_handler();
+
     /* raise the task priority of LVGL and/or reduce the handler period can improve the performance */
-    vTaskDelay(LV_DEF_REFR_PERIOD);
+    vTaskDelay((const TickType_t)LV_DEF_REFR_PERIOD);
   }
 }
 
