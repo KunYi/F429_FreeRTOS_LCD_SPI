@@ -8,6 +8,20 @@ project(F429_FreeRTOS_LCD)
 set(EXECUTABLE ${PROJECT_NAME}.elf)
 set(LINKER_FILE ${CMAKE_SOURCE_DIR}/STM32F429ZITX_FLASH.ld)
 
+set(CMAKE_C_FLAGS_DEBUG
+  "${CMAKE_C_FLAGS_DEBUG} -O0 -ggdb"
+  CACHE INTERNAL " C compiler flags")
+set(CMAKE_C_FLAGS_RELEASE
+  "${CMAKE_C_FLAGS_RELEASE} -O3"
+  CACHE INTERNAL " C compiler flags")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO
+  "${CMAKE_C_FLAGS_RELWITHDEBINFO} -O3 -ggdb"
+  CACHE INTERNAL " C compiler flags")
+set(CMAKE_C_FLAGS_MINSIZEREL
+  "${CMAKE_C_FLAGS_MINSIZEREL} -O3"
+  CACHE INTERNAL " C compiler flags")
+
+
 add_compile_options(
   -mcpu=cortex-m4
   -mthumb
@@ -20,8 +34,6 @@ add_compile_options(
   -DUSE_HAL_DRIVER
   -DSTM32F429xx
   -Wall
-  -O0
-  -ggdb
 )
 
 # set(DEFINE_COMPILE_FLAGS
