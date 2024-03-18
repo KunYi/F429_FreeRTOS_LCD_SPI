@@ -18,6 +18,22 @@
                 "cwd": "build/Debug"
             },
             "problemMatcher": []
+        },
+        {
+            "label": "ST-Flash-Release-F429",
+            "type": "shell",
+            "command": "st-flash",
+            "args": [
+                "--reset",
+                "--format=ihex",
+                "--freq=4000k",
+                "write",
+                "F429_FreeRTOS_LCD.hex"
+            ],
+            "options": {
+                "cwd": "build/Release"
+            },
+            "problemMatcher": []
         }
     ]
 }
