@@ -79,7 +79,7 @@ set(STM32F4xx_DIR
 # for lvgl
 set(LV_CONF_BUILD_DISABLE_THORVG_INTERNAL ON)
 set(LV_CONF_BUILD_DISABLE_EXAMPLES ON)
-set(LV_CONF_BUILD_DISABLE_DEMOS ON)
+# set(LV_CONF_BUILD_DISABLE_DEMOS ON)
 set(LV_CONF_PATH
   ${CMAKE_SOURCE_DIR}/lv_conf.h
   CACHE STRING "" FORCE)
@@ -107,9 +107,12 @@ set(SRC_FILES
 # Build the executable based on the source files
 add_executable(${EXECUTABLE} ${SRC_FILES})
 
+add_dependencies(${EXECUTABLE}   lvgl::demos)
+
 target_link_libraries(${EXECUTABLE}
   freertos
   lvgl::lvgl
+  lvgl::demos
 )
 
 # List of includ directories

@@ -5,6 +5,7 @@
  */
 #include "lvgl.h"
 #include "./src/drivers/display/ili9341/lv_ili9341.h"
+#include "demos/lv_demos.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -138,6 +139,7 @@ void LVGL_Task(void *argument)
   lv_display_set_buffers(lcd_disp, buf1, buf2, buf_size, LV_DISPLAY_RENDER_MODE_PARTIAL);
 
   ui_init(lcd_disp);
+  //lv_demo_music();
 
   for(;;) {
     /* The task running lv_timer_handler should have lower priority than that running `lv_tick_inc` */
