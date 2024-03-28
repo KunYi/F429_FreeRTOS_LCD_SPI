@@ -103,7 +103,9 @@ static void lcd_send_color(lv_display_t *disp, const uint8_t *cmd, size_t cmd_si
         }
 }
 
+#if (!LV_USE_DEMO_MUSIC)
 static void ui_init(lv_display_t *disp);
+#endif
 
 void LVGL_Task(void *argument)
 {
@@ -137,9 +139,11 @@ void LVGL_Task(void *argument)
   }
 
   lv_display_set_buffers(lcd_disp, buf1, buf2, buf_size, LV_DISPLAY_RENDER_MODE_PARTIAL);
-
+#if (!LV_USE_DEMO_MUSIC)
   ui_init(lcd_disp);
-  //lv_demo_music();
+#else
+  lv_demo_music();
+#endif
 
   for(;;) {
     /* The task running lv_timer_handler should have lower priority than that running `lv_tick_inc` */
@@ -149,7 +153,7 @@ void LVGL_Task(void *argument)
   }
 }
 
-
+#if (!LV_USE_DEMO_MUSIC)
 void ui_init(lv_display_t *disp)
 {
   lv_obj_t *obj;
@@ -167,3 +171,4 @@ void ui_init(lv_display_t *disp)
   lv_obj_set_style_text_color(obj, lv_color_black(), 0);
   lv_label_set_text(obj, "Hello World!");
 }
+#endif
