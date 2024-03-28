@@ -38,15 +38,6 @@ void lcd_color_transfer_ready_cb(SPI_HandleTypeDef *hspi)
 /* Initialize LCD bus, reset LCD */
 static int32_t lcd_init(void)
 {
-//   GPIO_InitTypeDef GPIO_InitStruct = {0};
-//   GPIO_InitStruct.Pin = LCD_CS_Pin | LCD_DCX_Pin;
-//   GPIO_InitStruct.Pull = GPIO_NOPULL;
-//   GPIO_InitStruct.Mode =  GPIO_MODE_OUTPUT_PP;
-//   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-//   HAL_GPIO_Init(LCD_CS_GPIO_Port, &GPIO_InitStruct);
-//   HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_RESET);
-//   HAL_GPIO_WritePin(LCD_DCX_GPIO_Port, LCD_DCX_Pin, GPIO_PIN_SET);
-//   vTaskDelay(10);
   /* Register SPI Tx Complete Callback */
   HAL_SPI_RegisterCallback(&hspi1, HAL_SPI_TX_COMPLETE_CB_ID, lcd_color_transfer_ready_cb);
 
@@ -121,7 +112,7 @@ void LVGL_Task(void *argument)
   if (lcd_init() != 0) {
     return;
   }
-
+  HAL_GPIO_WritePin(LCD_BL_GPIO_Port, LCD_BL_Pin, GPIO_PIN_SET);
   /* Create the LVGL display object and the LCD display driver */
   lcd_disp = lv_ili9341_create(LCD_H_RES, LCD_V_RES, LV_LCD_FLAG_NONE, lcd_send_cmd, lcd_send_color);
   lv_display_set_rotation(lcd_disp, LV_DISPLAY_ROTATION_270);
