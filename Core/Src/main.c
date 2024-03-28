@@ -120,7 +120,7 @@ int main(void)
   xTaskCreate( prvBlinky, "Blinky", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY+2, NULL );
   // extern void main_blinky(void);
   // main_blinky();
-  xTaskCreate( LVGL_Task, "Lvgl", 512, NULL, (configMAX_PRIORITIES * 2/3), NULL );
+  xTaskCreate( LVGL_Task, "Lvgl", 2048, NULL, (configMAX_PRIORITIES * 2/3), NULL );
 
   vTaskStartScheduler();
   /* USER CODE END 2 */
